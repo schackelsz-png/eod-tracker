@@ -48,7 +48,7 @@
   }
   .wrap{max-width:660px;margin:0 auto}
 
-  /* ---------- header: brand | date+time | brand ---------- */
+  /* ---------- header ---------- */
   .top{
     display:grid;
     grid-template-columns:1fr auto 1fr;
@@ -58,21 +58,25 @@
   }
   .brand-left,
   .brand-right{
-    font-size:clamp(15px, 4.4vw, 30px);
-    font-weight:800;
-    letter-spacing:-.02em;
-    line-height:1;
-    color:var(--brand);
-    white-space:nowrap;
-    user-select:none;
+    display:flex;align-items:center;min-width:0;
   }
-  .brand-left{ text-align:left; }
-  .brand-right{ text-align:right; }
+  .brand-left{ justify-content:flex-start; }
+  .brand-right{ justify-content:flex-end; }
 
-  .date-time{
-    text-align:center;
-    min-width:0;
+  .brand-img{
+    height:clamp(24px, 3.8vw, 34px);
+    width:auto;
+    max-width:100%;
+    object-fit:contain;
+    display:block;
   }
+  .brand-text{
+    font-size:clamp(15px, 4.4vw, 30px);
+    font-weight:800;letter-spacing:-.02em;line-height:1;
+    color:var(--brand);white-space:nowrap;user-select:none;
+  }
+
+  .date-time{ text-align:center; min-width:0; }
   .date-line{
     font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
     color:var(--muted);white-space:nowrap;
@@ -174,6 +178,7 @@
   .current-card.paused .current-title{color:var(--paused)}
   .current-card.paused .current-elapsed{color:var(--paused)}
 
+  /* ---------- completed tasks ---------- */
   .task-list{list-style:none;margin:0;padding:0}
   .task-item{
     display:flex;justify-content:space-between;gap:12px;padding:12px 0;
@@ -192,7 +197,43 @@
     transition:background .15s,color .15s;
   }
   .del-btn:hover{background:var(--stop);color:#fff;border-color:var(--stop)}
+  .manual-badge{
+    display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.1em;
+    background:var(--panel-2);color:var(--muted);border:1px solid var(--border);
+    padding:1px 6px;border-radius:999px;margin-left:6px;vertical-align:middle;
+  }
   .muted{color:var(--muted);font-size:14px;margin:10px 0 2px;text-align:center}
+
+  /* ---------- add manual entry ---------- */
+  .add-manual{
+    display:block;width:100%;margin-top:12px;padding:10px 14px;
+    border:1px dashed var(--border);border-radius:10px;background:transparent;
+    color:var(--muted);font-family:inherit;font-size:13px;font-weight:700;
+    cursor:pointer;transition:border-color .15s ease,color .15s ease,background .15s ease;
+  }
+  .add-manual:hover{border-color:var(--accent);color:var(--accent);background:var(--panel-2)}
+  .manual-form{
+    margin-top:12px;padding:14px;background:var(--panel-2);
+    border:1px solid var(--border);border-radius:12px;animation:slideIn .2s ease;
+  }
+  .manual-form input[type="text"],
+  .manual-form input[type="number"],
+  .manual-form input[type="date"]{
+    width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);
+    background:var(--panel);color:var(--text);font-size:14px;font-family:inherit;
+    outline:none;transition:border-color .15s ease,box-shadow .15s ease;
+  }
+  .manual-form input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,140,255,.18)}
+  .manual-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .manual-date-input{margin-top:10px}
+  .manual-hint{
+    font-size:11.5px;color:var(--muted);margin-top:8px;text-align:center;
+    font-variant-numeric:tabular-nums;
+  }
+  .manual-actions{display:flex;gap:10px;margin-top:12px}
+  .manual-actions .btn{flex:1;padding:10px 16px;font-size:14px}
+
+  /* ---------- today total ---------- */
   .total-box{
     margin:20px 0 16px;background:var(--total-bg);border-radius:20px;
     padding:24px 22px;text-align:center;color:#fff;box-shadow:var(--total-shadow);
@@ -201,16 +242,82 @@
   .total-value{font-size:52px;font-weight:800;line-height:1.05;margin-top:8px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
   .total-value .unit{font-size:20px;font-weight:700;opacity:.85;margin-left:8px;letter-spacing:0}
   .total-sub{font-size:12.5px;opacity:.8;margin-top:6px}
+
+  /* ---------- weekly card (collapsible) ---------- */
+  .weekly-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .weekly-toggle{
+    display:flex;align-items:center;gap:10px;flex:1;min-width:0;
+    padding:2px 0;background:transparent;border:0;
+    color:var(--text);font-family:inherit;font-size:15px;font-weight:800;
+    cursor:pointer;text-align:left;letter-spacing:.02em;
+  }
+  .weekly-caret{
+    display:inline-block;width:14px;flex-shrink:0;
+    font-size:11px;color:var(--muted);text-align:center;
+  }
+  .weekly-title{ flex-shrink:0; }
+  .weekly-peek{
+    margin-left:auto;
+    font-size:12.5px;font-weight:800;color:var(--accent);
+    background:var(--panel-2);border:1px solid var(--border);
+    padding:3px 10px;border-radius:999px;white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+  }
+  .week-nav{display:flex;gap:6px;flex-shrink:0}
+  .nav-btn{
+    width:30px;height:30px;border-radius:8px;border:1px solid var(--border);
+    background:var(--panel-2);color:var(--text);font-size:13px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .15s ease,transform .1s ease;
+  }
+  .nav-btn:hover{background:var(--border)}
+  .nav-btn:active{transform:scale(.94)}
+  .nav-btn:disabled{opacity:.35;cursor:not-allowed}
+
+  .weekly-body{margin-top:14px;animation:slideIn .2s ease}
+  .week-range{
+    font-size:12.5px;color:var(--muted);font-weight:700;letter-spacing:.02em;
+    margin-bottom:14px;
+  }
+  .week-days{display:flex;flex-direction:column;gap:8px}
+  .week-day{
+    display:grid;grid-template-columns:92px 1fr 60px;align-items:center;gap:10px;
+    font-size:13px;font-variant-numeric:tabular-nums;
+  }
+  .week-day-name{color:var(--muted);font-weight:600;white-space:nowrap}
+  .week-day.is-today .week-day-name{color:var(--accent);font-weight:800}
+  .week-bar-track{
+    height:8px;background:var(--panel-2);border:1px solid var(--border);
+    border-radius:999px;overflow:hidden;position:relative;
+  }
+  .week-bar-fill{
+    height:100%;background:linear-gradient(90deg,var(--accent),#7c5cff);
+    border-radius:999px;transition:width .35s ease;width:0;
+  }
+  .week-day-hours{text-align:right;font-weight:800;color:var(--text)}
+  .week-total-row{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-top:16px;padding-top:14px;border-top:2px solid var(--border);
+  }
+  .week-total-label{
+    font-size:11.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);
+  }
+  .week-total-value{
+    font-size:28px;font-weight:800;color:var(--accent);
+    font-variant-numeric:tabular-nums;letter-spacing:-.02em;
+  }
+  .week-total-value .unit{font-size:14px;font-weight:700;color:var(--muted);margin-left:4px}
+
+  /* ---------- actions ---------- */
   .actions{display:flex;flex-direction:column;gap:10px}
 
-  /* ---------- footer row: clear | theme | install ---------- */
+  /* ---------- footer row ---------- */
   .footer-row{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-    margin-top:18px;
-    flex-wrap:wrap;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    margin-top:18px;flex-wrap:wrap;
   }
   .link-btn{
     background:none;border:0;color:var(--muted);font-size:12.5px;font-family:inherit;
@@ -225,28 +332,20 @@
   }
   .icon-btn:active{transform:scale(.94)}
 
-  /* ---------- install hint panel ---------- */
+  /* ---------- install hint ---------- */
   .install-hint{
-    margin:14px auto 0;
-    max-width:480px;
-    background:var(--panel-2);
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:12px 34px 12px 14px;
-    font-size:13px;
-    color:var(--muted);
-    line-height:1.5;
-    position:relative;
-    animation:pop .2s ease;
+    margin:14px auto 0;max-width:480px;background:var(--panel-2);
+    border:1px solid var(--border);border-radius:12px;
+    padding:12px 34px 12px 14px;font-size:13px;color:var(--muted);
+    line-height:1.5;position:relative;animation:pop .2s ease;
   }
   .install-hint strong{ color:var(--text); }
   .install-hint .close-hint{
-    position:absolute; top:6px; right:6px;
-    background:transparent; border:0; color:var(--muted);
-    font-size:15px; cursor:pointer; padding:4px 8px;
-    border-radius:6px; line-height:1;
+    position:absolute;top:6px;right:6px;background:transparent;border:0;
+    color:var(--muted);font-size:15px;cursor:pointer;padding:4px 8px;
+    border-radius:6px;line-height:1;
   }
-  .install-hint .close-hint:hover{ background:var(--border); color:var(--text); }
+  .install-hint .close-hint:hover{background:var(--border);color:var(--text)}
 
   .toast{
     position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);
@@ -263,13 +362,10 @@
   }
   [hidden]{display:none !important}
 
-  /* very narrow phones: stack brand above date/time */
   @media (max-width: 380px){
     .top{
       grid-template-columns:1fr 1fr;
-      grid-template-areas:
-        "left  right"
-        "center center";
+      grid-template-areas:"left  right" "center center";
       row-gap:8px;
     }
     .brand-left{ grid-area:left; }
@@ -282,12 +378,20 @@
 <div class="wrap">
 
   <header class="top">
-    <div class="brand-left">ESQUALATE</div>
+    <div class="brand-left">
+      <img src="esqualate-logo.svg" alt="ESQUALATE" class="brand-img"
+           onerror="this.hidden=true; this.nextElementSibling.hidden=false;">
+      <span class="brand-text" hidden>ESQUALATE</span>
+    </div>
     <div class="date-time">
       <div class="date-line" id="dateLine">—</div>
       <div class="clock-line" id="clockLine">--:--:--</div>
     </div>
-    <div class="brand-right">NEUROGENX</div>
+    <div class="brand-right">
+      <img src="neurogenx-logo.svg" alt="NEUROGENX" class="brand-img"
+           onerror="this.hidden=true; this.nextElementSibling.hidden=false;">
+      <span class="brand-text" hidden>NEUROGENX</span>
+    </div>
   </header>
 
   <section class="card">
@@ -303,7 +407,6 @@
     </div>
   </section>
 
-  <!-- CURRENTLY WORKING ON -->
   <section class="card current-card" id="currentCard" hidden>
     <div class="current-head">
       <span class="live-dot" aria-hidden="true"></span>
@@ -324,6 +427,22 @@
     </div>
     <ul class="task-list" id="taskList"></ul>
     <p class="muted" id="emptyMsg">No tasks logged yet today.</p>
+
+    <button class="add-manual" id="addManualBtn" type="button">+ Add manual entry</button>
+
+    <div class="manual-form" id="manualForm" hidden>
+      <input type="text" id="manualText" placeholder="Task description" autocomplete="off">
+      <div class="manual-grid">
+        <input type="number" id="manualHours"   placeholder="Hours (e.g. 1)"    min="0" max="24" step="1" inputmode="numeric">
+        <input type="number" id="manualMinutes" placeholder="Minutes (e.g. 30)" min="0" max="59" step="5" inputmode="numeric">
+      </div>
+      <input type="date" id="manualDate" class="manual-date-input">
+      <div class="manual-hint" id="manualHint">Enter hours and minutes — they’ll be recorded as decimal hours.</div>
+      <div class="manual-actions">
+        <button class="btn ghost"   id="manualCancel" type="button">Cancel</button>
+        <button class="btn primary" id="manualSave"   type="button">Add Task</button>
+      </div>
+    </div>
   </section>
 
   <section class="total-box">
@@ -332,8 +451,32 @@
     <div class="total-sub" id="totalSub">0 tasks logged</div>
   </section>
 
+  <section class="card">
+    <div class="weekly-head">
+      <button class="weekly-toggle" id="weeklyToggle" type="button" aria-expanded="false">
+        <span class="weekly-caret" id="weeklyCaret">▶</span>
+        <span class="weekly-title">Weekly Summary</span>
+        <span class="weekly-peek" id="weeklyPeek">0.00 hrs</span>
+      </button>
+      <div class="week-nav" id="weekNav" hidden>
+        <button class="nav-btn" id="prevWeek" type="button" aria-label="Previous week">◀</button>
+        <button class="nav-btn" id="nextWeek" type="button" aria-label="Next week">▶</button>
+      </div>
+    </div>
+
+    <div class="weekly-body" id="weeklyBody" hidden>
+      <div class="week-range" id="weekRange">—</div>
+      <div class="week-days" id="weekDays"></div>
+      <div class="week-total-row">
+        <span class="week-total-label">Week Total</span>
+        <span class="week-total-value"><span id="weekTotal">0.00</span><span class="unit">hrs</span></span>
+      </div>
+    </div>
+  </section>
+
   <div class="actions">
-    <button class="btn primary wide" id="exportBtn" type="button">⬇  Download EOD Report (.txt)</button>
+    <button class="btn primary wide" id="exportBtn"     type="button">⬇  Download EOD Report (.txt)</button>
+    <button class="btn ghost   wide" id="exportWeekBtn" type="button">⬇  Download Weekly Report (.txt)</button>
   </div>
 
   <div class="footer-row">
@@ -380,6 +523,20 @@
     d = d || new Date();
     return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
   }
+  function parseDateKey(k) {
+    var p = k.split('-');
+    return new Date(+p[0], +p[1] - 1, +p[2], 0, 0, 0, 0);
+  }
+  function addDays(d, n) {
+    var r = new Date(d);
+    r.setDate(r.getDate() + n);
+    return r;
+  }
+  /* Sunday-start week */
+  function startOfWeek(d) {
+    var day = d.getDay(); // 0 = Sunday
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() - day, 0, 0, 0, 0);
+  }
   function fmtHMS(ms) {
     var s = Math.max(0, Math.floor(ms / 1000));
     return p2(Math.floor(s / 3600)) + ':' + p2(Math.floor((s % 3600) / 60)) + ':' + p2(s % 60);
@@ -388,9 +545,15 @@
   function fmtTime(ts) {
     return new Date(ts).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
   }
+  function fmtShort(d) {
+    return d.toLocaleDateString(undefined, { weekday: 'short' }) + ' ' +
+           d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
 
   /* ---------- state ---------- */
   var state = { tasks: [], active: null };
+  var viewWeekStart = startOfWeek(new Date());
+  var weeklyOpen = false;
 
   function load() {
     try {
@@ -414,10 +577,14 @@
   function save() {
     try { storage.set(STORE_KEY, JSON.stringify(state)); } catch (e) {}
   }
+  function sortKey(t) {
+    if (t.manual) return t.addedAt || t.start || 0;
+    return t.start || 0;
+  }
   function todaysTasks() {
     var k = dateKey();
     return state.tasks.filter(function (t) { return t.date === k; })
-                      .sort(function (a, b) { return a.start - b.start; });
+                      .sort(function (a, b) { return sortKey(a) - sortKey(b); });
   }
   function elapsedActive() {
     var a = state.active;
@@ -437,7 +604,17 @@
     pausedBadge: $('pausedBadge'),
     taskList: $('taskList'), emptyMsg: $('emptyMsg'), taskCount: $('taskCount'),
     totalHours: $('totalHours'), totalSub: $('totalSub'),
-    exportBtn: $('exportBtn'), clearBtn: $('clearBtn'),
+    addManualBtn: $('addManualBtn'), manualForm: $('manualForm'),
+    manualText: $('manualText'), manualHours: $('manualHours'),
+    manualMinutes: $('manualMinutes'), manualDate: $('manualDate'),
+    manualCancel: $('manualCancel'), manualSave: $('manualSave'),
+    weeklyToggle: $('weeklyToggle'), weeklyCaret: $('weeklyCaret'),
+    weeklyPeek: $('weeklyPeek'), weeklyBody: $('weeklyBody'),
+    weekNav: $('weekNav'), weekRange: $('weekRange'),
+    weekDays: $('weekDays'), weekTotal: $('weekTotal'),
+    prevWeek: $('prevWeek'), nextWeek: $('nextWeek'),
+    exportBtn: $('exportBtn'), exportWeekBtn: $('exportWeekBtn'),
+    clearBtn: $('clearBtn'),
     toast: $('toast'), metaTheme: $('metaTheme')
   };
 
@@ -463,7 +640,80 @@
     applyTheme(cur === 'dark' ? 'light' : 'dark');
   });
 
-  /* ---------- rendering ---------- */
+  /* ---------- standalone / window sizing ---------- */
+  function isStandalone() {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+           window.navigator.standalone === true;
+  }
+
+  var fitRunning = false;
+  var fitScheduled = false;
+
+  function measureContent() {
+    // Ensure we measure from the top of the document
+    try { window.scrollTo(0, 0); } catch (e) {}
+    var wrapEl = document.querySelector('.wrap');
+    if (!wrapEl) return null;
+
+    var bs = getComputedStyle(document.body);
+    var padL = parseFloat(bs.paddingLeft)  || 0;
+    var padR = parseFloat(bs.paddingRight) || 0;
+    var padB = parseFloat(bs.paddingBottom)|| 0;
+
+    var contentW = wrapEl.offsetWidth + padL + padR;
+    var contentH = wrapEl.offsetTop + wrapEl.offsetHeight + padB;
+
+    return { w: Math.ceil(contentW), h: Math.ceil(contentH) };
+  }
+
+  function fitWindow() {
+    if (fitRunning) return;
+    if (!isStandalone()) return;  // only works in installed PWA windows
+
+    fitRunning = true;
+    try {
+      var size = measureContent();
+      if (!size) { fitRunning = false; return; }
+
+      // Small buffer for rounding + any future scrollbar
+      var BUFFER = 8;
+      var targetW = size.w + BUFFER;
+      var targetH = size.h + BUFFER;
+
+      // Add OS/browser chrome (titlebar, etc.) so the *content* area matches
+      var chromeW = Math.max(0, window.outerWidth  - window.innerWidth);
+      var chromeH = Math.max(0, window.outerHeight - window.innerHeight);
+
+      var outerW = targetW + chromeW;
+      var outerH = targetH + chromeH;
+
+      // Reasonable clamps
+      outerW = Math.max(360, Math.min(outerW, 1000));
+      outerH = Math.max(500, Math.min(outerH, 1500));
+
+      // Skip if we're already within a few pixels
+      if (Math.abs(window.outerWidth  - outerW) < 4 &&
+          Math.abs(window.outerHeight - outerH) < 4) {
+        fitRunning = false;
+        return;
+      }
+
+      window.resizeTo(outerW, outerH);
+    } catch (e) {}
+
+    setTimeout(function () { fitRunning = false; }, 250);
+  }
+
+  function scheduleFit(delay) {
+    if (fitScheduled) return;
+    fitScheduled = true;
+    setTimeout(function () {
+      fitScheduled = false;
+      fitWindow();
+    }, delay || 150);
+  }
+
+  /* ---------- rendering: active ---------- */
   function renderActive() {
     var a = state.active;
     var spb = els.startPauseBtn;
@@ -471,22 +721,19 @@
 
     if (!a) {
       spb.textContent = 'Start';
-      spb.classList.remove('pause');
-      spb.classList.add('primary');
+      spb.classList.remove('pause'); spb.classList.add('primary');
       stb.disabled = true;
       els.input.disabled = false;
       els.input.placeholder = 'e.g. LinkedIn outreach — 30 connection requests';
     } else if (a.isPaused) {
       spb.textContent = 'Resume';
-      spb.classList.remove('pause');
-      spb.classList.add('primary');
+      spb.classList.remove('pause'); spb.classList.add('primary');
       stb.disabled = false;
       els.input.disabled = true;
       els.input.placeholder = 'Task paused — click Resume or Stop';
     } else {
       spb.textContent = 'Pause';
-      spb.classList.remove('primary');
-      spb.classList.add('pause');
+      spb.classList.remove('primary'); spb.classList.add('pause');
       stb.disabled = false;
       els.input.disabled = true;
       els.input.placeholder = 'Task in progress — click Pause or Stop';
@@ -498,7 +745,6 @@
   function renderCurrent() {
     var a = state.active;
     if (!a) { els.currentCard.hidden = true; return; }
-
     els.currentCard.hidden = false;
     els.currentCard.classList.toggle('paused', !!a.isPaused);
     els.currentText.textContent = a.text;
@@ -507,6 +753,7 @@
     els.pausedBadge.hidden = !a.isPaused;
   }
 
+  /* ---------- rendering: task list ---------- */
   function renderTasks() {
     var list = todaysTasks();
     els.taskCount.textContent = list.length;
@@ -522,11 +769,19 @@
 
       var name = document.createElement('div');
       name.className = 'task-name';
-      name.textContent = t.text;
+      name.appendChild(document.createTextNode(t.text));
+      if (t.manual) {
+        var badge = document.createElement('span');
+        badge.className = 'manual-badge';
+        badge.textContent = 'MANUAL';
+        name.appendChild(badge);
+      }
 
       var meta = document.createElement('div');
       meta.className = 'task-meta';
-      meta.textContent = fmtTime(t.start) + ' – ' + fmtTime(t.end);
+      meta.textContent = t.manual
+        ? 'Manual entry'
+        : fmtTime(t.start) + ' – ' + fmtTime(t.end);
 
       main.appendChild(name);
       main.appendChild(meta);
@@ -555,14 +810,15 @@
     });
 
     updateTotal();
+    updateWeekValues();
   }
 
+  /* ---------- today total ---------- */
   function totalMsToday() {
     var ms = todaysTasks().reduce(function (s, t) { return s + t.ms; }, 0);
     if (state.active) ms += elapsedActive();
     return ms;
   }
-
   function updateTotal() {
     var ms = totalMsToday();
     els.totalHours.textContent = fmtHours(ms);
@@ -570,7 +826,106 @@
     els.totalSub.textContent = (n === 1) ? '1 task logged' : n + ' tasks logged';
   }
 
-  /* ---------- the tick ---------- */
+  /* ---------- weekly view ---------- */
+  var weekRowsCache = [];
+
+  function buildWeekRows() {
+    var start = viewWeekStart;
+    var endInclusive = addDays(start, 6);
+    var startLbl = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    var endLbl = endInclusive.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    els.weekRange.textContent = startLbl + ' – ' + endLbl;
+
+    els.weekDays.innerHTML = '';
+    weekRowsCache = [];
+
+    for (var i = 0; i < 7; i++) {
+      var d = addDays(start, i);
+      var row = document.createElement('div');
+      row.className = 'week-day';
+
+      var name = document.createElement('span');
+      name.className = 'week-day-name';
+      name.textContent = fmtShort(d);
+
+      var track = document.createElement('div');
+      track.className = 'week-bar-track';
+      var fill = document.createElement('div');
+      fill.className = 'week-bar-fill';
+      track.appendChild(fill);
+
+      var hrs = document.createElement('span');
+      hrs.className = 'week-day-hours';
+      hrs.textContent = '0.00';
+
+      row.appendChild(name);
+      row.appendChild(track);
+      row.appendChild(hrs);
+      els.weekDays.appendChild(row);
+
+      weekRowsCache.push({
+        date: d, key: dateKey(d), rowEl: row,
+        nameEl: name, fillEl: fill, hoursEl: hrs
+      });
+    }
+
+    var currentWeekStart = startOfWeek(new Date());
+    els.nextWeek.disabled = start.getTime() >= currentWeekStart.getTime();
+  }
+
+  function updateWeekValues() {
+    if (!weekRowsCache.length) return;
+
+    var todayK = dateKey();
+    var activeMs = state.active ? elapsedActive() : 0;
+    var activeDate = state.active ? state.active.date : null;
+
+    var byDate = {};
+    state.tasks.forEach(function (t) {
+      if (!t.date) return;
+      byDate[t.date] = (byDate[t.date] || 0) + t.ms;
+    });
+
+    var maxMs = 0;
+    var total = 0;
+    var dayMs = weekRowsCache.map(function (row) {
+      var ms = byDate[row.key] || 0;
+      if (activeDate === row.key) ms += activeMs;
+      if (ms > maxMs) maxMs = ms;
+      total += ms;
+      return ms;
+    });
+    if (maxMs <= 0) maxMs = 1;
+
+    weekRowsCache.forEach(function (row, i) {
+      row.hoursEl.textContent = fmtHours(dayMs[i]);
+      row.fillEl.style.width = ((dayMs[i] / maxMs) * 100) + '%';
+      row.rowEl.classList.toggle('is-today', row.key === todayK);
+    });
+
+    els.weekTotal.textContent = fmtHours(total);
+    els.weeklyPeek.textContent = fmtHours(total) + ' hrs';
+  }
+
+  function renderWeekly() {
+    buildWeekRows();
+    updateWeekValues();
+  }
+
+  function setWeeklyOpen(open) {
+    weeklyOpen = !!open;
+    els.weeklyBody.hidden = !weeklyOpen;
+    els.weekNav.hidden = !weeklyOpen;
+    els.weeklyCaret.textContent = weeklyOpen ? '▼' : '▶';
+    els.weeklyToggle.setAttribute('aria-expanded', weeklyOpen ? 'true' : 'false');
+    // Re-fit the window now that content height changed
+    scheduleFit(200);
+  }
+  els.weeklyToggle.addEventListener('click', function () {
+    setWeeklyOpen(!weeklyOpen);
+  });
+
+  /* ---------- tick ---------- */
   function tick() {
     try {
       var now = new Date();
@@ -589,6 +944,7 @@
         els.timer.textContent = '00:00:00';
       }
       updateTotal();
+      updateWeekValues();
     } catch (e) {}
   }
 
@@ -608,10 +964,7 @@
       accumulated: 0, segmentStart: now, isPaused: false
     };
     els.input.value = '';
-    save();
-    renderActive();
-    renderTasks();
-    tick();
+    save(); renderActive(); renderTasks(); tick();
   }
 
   function pauseTask() {
@@ -620,9 +973,7 @@
     a.accumulated += Date.now() - a.segmentStart;
     a.segmentStart = null;
     a.isPaused = true;
-    save();
-    renderActive();
-    tick();
+    save(); renderActive(); tick();
     toast('Paused — take your break');
   }
 
@@ -631,9 +982,7 @@
     if (!a || !a.isPaused) return;
     a.segmentStart = Date.now();
     a.isPaused = false;
-    save();
-    renderActive();
-    tick();
+    save(); renderActive(); tick();
   }
 
   function stopTask() {
@@ -647,17 +996,13 @@
       ms: total, date: a.date || dateKey(new Date(a.start))
     });
     state.active = null;
-    save();
-    renderActive();
-    renderTasks();
-    tick();
+    save(); renderActive(); renderTasks(); tick();
     els.input.focus();
   }
 
   function deleteTask(id) {
     state.tasks = state.tasks.filter(function (t) { return t.id !== id; });
-    save();
-    renderTasks();
+    save(); renderTasks();
   }
 
   els.startPauseBtn.addEventListener('click', function () {
@@ -669,10 +1014,7 @@
   els.stopBtn.addEventListener('click', stopTask);
 
   els.input.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (!state.active) startTask();
-    }
+    if (e.key === 'Enter') { e.preventDefault(); if (!state.active) startTask(); }
   });
 
   els.clearBtn.addEventListener('click', function () {
@@ -681,9 +1023,113 @@
     if (!confirm('Delete all ' + list.length + ' task(s) logged today? This cannot be undone.')) return;
     var k = dateKey();
     state.tasks = state.tasks.filter(function (t) { return t.date !== k; });
+    save(); renderTasks(); toast("Today's tasks cleared");
+  });
+
+  /* ---------- manual entry ---------- */
+  function openManualForm() {
+    els.manualForm.hidden = false;
+    els.manualText.value = '';
+    els.manualHours.value = '';
+    els.manualMinutes.value = '';
+    els.manualDate.value = dateKey();
+    setTimeout(function () { try { els.manualText.focus(); } catch (e) {} }, 50);
+  }
+  function closeManualForm() { els.manualForm.hidden = true; }
+
+  function shakeInputs() {
+    [els.manualHours, els.manualMinutes].forEach(function (el) {
+      el.classList.add('shake');
+    });
+    setTimeout(function () {
+      [els.manualHours, els.manualMinutes].forEach(function (el) {
+        el.classList.remove('shake');
+      });
+    }, 400);
+  }
+
+  function saveManualEntry() {
+    var text = els.manualText.value.trim();
+    var hrsRaw = els.manualHours.value.trim();
+    var minsRaw = els.manualMinutes.value.trim();
+    var dateStr = els.manualDate.value;
+
+    if (!text) {
+      els.manualText.classList.add('shake');
+      setTimeout(function () { els.manualText.classList.remove('shake'); }, 400);
+      els.manualText.focus();
+      return;
+    }
+
+    var hrs = hrsRaw === '' ? 0 : parseInt(hrsRaw, 10);
+    var mins = minsRaw === '' ? 0 : parseInt(minsRaw, 10);
+
+    if (isNaN(hrs) || hrs < 0 || hrs > 24 || isNaN(mins) || mins < 0 || mins > 59) {
+      shakeInputs();
+      toast('Hours 0–24, minutes 0–59');
+      return;
+    }
+
+    var totalMin = hrs * 60 + mins;
+    if (totalMin <= 0) {
+      shakeInputs();
+      els.manualHours.focus();
+      toast('Total time must be at least 1 minute');
+      return;
+    }
+    if (totalMin > 24 * 60) {
+      toast('Total cannot exceed 24 hours');
+      return;
+    }
+    if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      toast('Pick a valid date');
+      return;
+    }
+
+    var ms = totalMin * 60000;
+    var dateMidnight = parseDateKey(dateStr).getTime();
+
+    state.tasks.push({
+      id: uid(),
+      text: text,
+      manual: true,
+      date: dateStr,
+      ms: ms,
+      start: dateMidnight,
+      end: dateMidnight + ms,
+      addedAt: Date.now()
+    });
     save();
+    closeManualForm();
     renderTasks();
-    toast("Today's tasks cleared");
+    toast('Added ' + fmtHours(ms) + ' hrs');
+  }
+
+  els.addManualBtn.addEventListener('click', openManualForm);
+  els.manualCancel.addEventListener('click', closeManualForm);
+  els.manualSave.addEventListener('click', saveManualEntry);
+
+  els.manualText.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); els.manualHours.focus(); }
+  });
+  els.manualHours.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); els.manualMinutes.focus(); }
+  });
+  els.manualMinutes.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); saveManualEntry(); }
+  });
+
+  /* ---------- week navigation ---------- */
+  els.prevWeek.addEventListener('click', function () {
+    viewWeekStart = addDays(viewWeekStart, -7);
+    renderWeekly();
+  });
+  els.nextWeek.addEventListener('click', function () {
+    var currentWeekStart = startOfWeek(new Date());
+    var next = addDays(viewWeekStart, 7);
+    if (next.getTime() > currentWeekStart.getTime()) return;
+    viewWeekStart = next;
+    renderWeekly();
   });
 
   /* ---------- EOD report ---------- */
@@ -713,8 +1159,12 @@
     }
 
     list.forEach(function (t, i) {
-      L.push((i + 1) + '. ' + t.text);
-      L.push('   Time     : ' + fmtTime(t.start) + ' - ' + fmtTime(t.end));
+      L.push((i + 1) + '. ' + t.text + (t.manual ? '  [manual]' : ''));
+      if (t.manual) {
+        L.push('   Time     : manual entry');
+      } else {
+        L.push('   Time     : ' + fmtTime(t.start) + ' - ' + fmtTime(t.end));
+      }
       L.push('   Duration : ' + fmtHours(t.ms) + ' hrs');
       L.push('');
     });
@@ -743,22 +1193,106 @@
     var a = document.createElement('a');
     a.href = url;
     a.download = 'EOD-' + USER_NAME.replace(/\s+/g, '_') + '-' + dateKey() + '.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
-    toast('Report downloaded');
+    toast('EOD report downloaded');
   }
 
   els.exportBtn.addEventListener('click', downloadReport);
 
-  /* ---------- install prompt (always visible unless already installed) ---------- */
-  var deferredPrompt = null;
+  /* ---------- weekly report ---------- */
+  function buildWeeklyReport() {
+    var now = new Date();
+    var start = viewWeekStart;
+    var bar = '='.repeat(54);
+    var thin = '-'.repeat(54);
+    var L = [];
 
-  function isStandalone() {
-    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-           window.navigator.standalone === true;
+    L.push(bar);
+    L.push('  WEEKLY REPORT');
+    L.push(bar);
+    L.push('Name      : ' + USER_NAME);
+    L.push('Company   : ' + COMPANY_NAME);
+    L.push('Period    : ' + start.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) +
+           '  -  ' + addDays(start, 6).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }));
+    L.push('Generated : ' + now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }));
+    L.push('');
+    L.push('DAILY BREAKDOWN');
+    L.push(thin);
+
+    var totalMs = 0;
+    var dayData = [];
+
+    for (var i = 0; i < 7; i++) {
+      var d = addDays(start, i);
+      var k = dateKey(d);
+      var tasks = state.tasks.filter(function (t) { return t.date === k; })
+                             .sort(function (a, b) { return sortKey(a) - sortKey(b); });
+      var ms = tasks.reduce(function (s, t) { return s + t.ms; }, 0);
+
+      totalMs += ms;
+      dayData.push({ date: d, key: k, tasks: tasks, ms: ms });
+
+      var dayLbl = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+      L.push(dayLbl.padEnd(18, ' ') + fmtHours(ms) + ' hrs');
+    }
+
+    L.push(thin);
+    L.push('WEEK TOTAL: ' + fmtHours(totalMs) + ' hrs');
+    L.push('');
+    L.push(bar);
+    L.push('');
+    L.push('DETAILED TASKS');
+    L.push(thin);
+    L.push('');
+
+    var hasAny = false;
+    dayData.forEach(function (day) {
+      if (!day.tasks.length) return;
+      hasAny = true;
+      L.push(day.date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }));
+      day.tasks.forEach(function (t, i) {
+        L.push('  ' + (i + 1) + '. ' + t.text + (t.manual ? '  [manual]' : ''));
+        if (t.manual) {
+          L.push('     Time     : manual entry');
+        } else {
+          L.push('     Time     : ' + fmtTime(t.start) + ' - ' + fmtTime(t.end));
+        }
+        L.push('     Duration : ' + fmtHours(t.ms) + ' hrs');
+        L.push('');
+      });
+    });
+
+    if (!hasAny) {
+      L.push('  (no tasks logged this week)');
+      L.push('');
+    }
+
+    L.push(bar);
+    L.push('WEEK TOTAL: ' + fmtHours(totalMs) + ' hrs');
+    L.push(bar);
+
+    return L.join('\n');
   }
+
+  function downloadWeeklyReport() {
+    var text = buildWeeklyReport();
+    var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    var start = viewWeekStart;
+    var end = addDays(start, 6);
+    a.download = 'WEEKLY-' + USER_NAME.replace(/\s+/g, '_') + '-' + dateKey(start) + '_to_' + dateKey(end) + '.txt';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    toast('Weekly report downloaded');
+  }
+
+  els.exportWeekBtn.addEventListener('click', downloadWeeklyReport);
+
+  /* ---------- install prompt ---------- */
+  var deferredPrompt = null;
   function isIOS() {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   }
@@ -767,10 +1301,8 @@
     return /Safari/.test(ua) && !/Chrome|Chromium|Edg|OPR/.test(ua);
   }
 
-  // Button is always visible on first load unless we're already in standalone mode
   els.installBtn.hidden = isStandalone();
 
-  // Upgrade to native prompt when the browser offers it
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
     deferredPrompt = e;
@@ -781,16 +1313,12 @@
     var hint = $('installHint');
     if (!hint) return;
 
-    // Native install dialog if the browser supports it
     if (deferredPrompt) {
       deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(function () {
-        deferredPrompt = null;
-      }).catch(function () {});
+      deferredPrompt.userChoice.then(function () { deferredPrompt = null; }).catch(function () {});
       return;
     }
 
-    // Otherwise show manual instructions tailored to the browser
     var msg;
     if (isStandalone()) {
       msg = '<strong>Already installed.</strong><br>You are running the app in standalone mode.';
@@ -808,8 +1336,7 @@
             'If you don’t see it, the page may need to be served over HTTPS first.';
     }
 
-    hint.innerHTML = msg +
-      '<button class="close-hint" type="button" aria-label="Close">✕</button>';
+    hint.innerHTML = msg + '<button class="close-hint" type="button" aria-label="Close">✕</button>';
     hint.hidden = false;
     var closeBtn = hint.querySelector('.close-hint');
     if (closeBtn) closeBtn.addEventListener('click', function () { hint.hidden = true; });
@@ -822,12 +1349,10 @@
     toast('App installed');
   });
 
-  /* ---------- service worker (optional) ---------- */
+  /* ---------- service worker ---------- */
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-      try {
-        navigator.serviceWorker.register('sw.js').catch(function () {});
-      } catch (e) {}
+      try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {}
     });
   }
 
@@ -841,31 +1366,35 @@
 
     renderActive();
     renderTasks();
+    renderWeekly();
+    setWeeklyOpen(false);   // collapsed on first load
+
     tick();
 
-    if (!state.active) {
-      try { els.input.focus(); } catch (e) {}
-    }
+    if (!state.active) { try { els.input.focus(); } catch (e) {} }
   }
 
   try { init(); } catch (e) {}
+
+  /* ---------- auto-fit window on load (PWA only) ---------- */
+  window.addEventListener('load', function () {
+    // Give logos and fonts a moment to load before measuring
+    scheduleFit(600);
+    // And again shortly after in case the first measurement was off
+    setTimeout(function () { scheduleFit(0); }, 1500);
+  });
 
   /* ---------- clock drivers ---------- */
   setInterval(tick, 500);
 
   var lastFrame = 0;
   function loop(ts) {
-    if (ts - lastFrame > 200) {
-      lastFrame = ts;
-      tick();
-    }
+    if (ts - lastFrame > 200) { lastFrame = ts; tick(); }
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
 
-  document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) tick();
-  });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) tick(); });
   window.addEventListener('focus', tick);
 
 })();

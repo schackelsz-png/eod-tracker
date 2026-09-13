@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eef1f6" id="metaTheme">
+<meta name="description" content="Simple task timer that exports an End-of-Day report.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>EOD Time Tracker</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#eef1f6; --panel:#ffffff; --panel-2:#f7f9fc;
+    --text:#0f1720; --muted:#6b7684; --border:#e2e7ee;
+    --accent:#2563eb; --stop:#e11d48; --paused:#f59e0b;
+    --shadow:0 1px 2px rgba(15,23,32,.05), 0 6px 20px rgba(15,23,32,.06);
+    --total-bg:linear-gradient(135deg,#2563eb,#4f46e5);
+    --total-shadow:0 10px 30px rgba(37,99,235,.28);
+    --current-bg:rgba(37,99,235,.06);
+    --current-border:rgba(37,99,235,.35);
+    --pulse:#22c55e;
+    --brand:#94a1b2;
+  }
+  html[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#0d1015; --panel:#161a21; --panel-2:#1c212a;
+    --text:#e7ecf3; --muted:#8b95a5; --border:#262c37;
+    --accent:#4f8cff; --stop:#ff5470; --paused:#fbbf24;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35);
+    --total-bg:linear-gradient(135deg,#2f6bff,#7c5cff);
+    --total-shadow:0 10px 30px rgba(0,0,0,.45);
+    --current-bg:rgba(79,140,255,.10);
+    --current-border:rgba(79,140,255,.45);
+    --pulse:#4ade80;
+    --brand:#5d6878;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:16px;line-height:1.45;padding:18px 14px 60px;
+    transition:background .2s ease,color .2s ease;-webkit-tap-highlight-color:transparent;
+  }
+  .wrap{max-width:660px;margin:0 auto}
+
+  /* ---------- header: brand | date+time | brand ---------- */
+  .top{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    gap:10px;
+    margin-bottom:20px;
+  }
+  .brand-left,
+  .brand-right{
+    font-size:clamp(15px, 4.4vw, 30px);
+    font-weight:800;
+    letter-spacing:-.02em;
+    line-height:1;
+    color:var(--brand);
+    white-space:nowrap;
+    user-select:none;
+  }
+  .brand-left{ text-align:left; }
+  .brand-right{ text-align:right; }
+
+  .date-time{
+    text-align:center;
+    min-width:0;
+  }
+  .date-line{
+    font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);white-space:nowrap;
+  }
+  .clock-line{
+    font-size:30px;font-weight:800;letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap;
+  }
+
+  .card{
+    background:var(--panel);border:1px solid var(--border);border-radius:18px;
+    padding:18px;box-shadow:var(--shadow);margin-bottom:16px;
+  }
+  .lbl{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:.02em}
+  input[type="text"]{
+    width:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--border);
+    background:var(--panel-2);color:var(--text);font-size:16px;font-family:inherit;
+    outline:none;transition:border-color .15s ease,box-shadow .15s ease,opacity .15s ease;
+  }
+  input[type="text"]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,140,255,.18)}
+  input[type="text"]:disabled{opacity:.55;cursor:not-allowed}
+  .timer-row{display:flex;align-items:center;gap:12px;margin-top:14px}
+  .timer{
+    flex:1;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em;
+    text-align:center;
+  }
+  .btn-row{display:flex;gap:10px;margin-top:14px}
+  .btn-row .btn{flex:1}
+  .btn{
+    border:0;border-radius:12px;padding:14px 18px;font-size:15px;font-weight:700;
+    font-family:inherit;cursor:pointer;transition:transform .08s ease,background .15s ease,opacity .15s ease;
+    white-space:nowrap;
+  }
+  .btn:active{transform:scale(.97)}
+  .btn:disabled{opacity:.35;cursor:not-allowed}
+  .btn:disabled:active{transform:none}
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.stop{background:var(--stop);color:#fff}
+  .btn.pause{background:var(--paused);color:#fff}
+  .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+  .btn.wide{width:100%;padding:15px 22px}
+  .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .card-head h2{font-size:15px;font-weight:800;margin:0;letter-spacing:.02em}
+  .pill{
+    font-size:12px;font-weight:800;background:var(--panel-2);border:1px solid var(--border);
+    color:var(--muted);border-radius:999px;padding:2px 10px;
+  }
+
+  /* ---------- currently working on ---------- */
+  .current-card{
+    background:var(--current-bg);
+    border:1px solid var(--current-border);
+    border-left:4px solid var(--accent);
+    animation:slideIn .25s ease;
+    transition:background .2s ease,border-color .2s ease;
+  }
+  @keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+  .current-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+  .live-dot{
+    width:10px;height:10px;border-radius:50%;background:var(--pulse);flex-shrink:0;
+    box-shadow:0 0 0 0 var(--pulse);
+    animation:pulse 1.6s ease-out infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}
+    70%{box-shadow:0 0 0 10px rgba(34,197,94,0)}
+    100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}
+  }
+  .current-title{
+    font-size:11.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent);
+  }
+  .paused-badge{
+    margin-left:auto;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    background:var(--paused);color:#fff;padding:3px 9px;border-radius:999px;
+  }
+  .current-text{
+    font-size:17px;font-weight:700;line-height:1.35;word-break:break-word;margin:0 0 8px;
+  }
+  .current-meta{
+    display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+    font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;
+  }
+  .current-elapsed{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:14px;font-weight:800;color:var(--accent);
+  }
+  .current-card.paused{
+    border-left-color:var(--paused);
+    border-color:rgba(245,158,11,.4);
+    background:rgba(245,158,11,.07);
+  }
+  html[data-theme="dark"] .current-card.paused{
+    background:rgba(251,191,36,.10);
+    border-color:rgba(251,191,36,.35);
+  }
+  .current-card.paused .live-dot{background:var(--paused);animation:none;box-shadow:none}
+  .current-card.paused .current-title{color:var(--paused)}
+  .current-card.paused .current-elapsed{color:var(--paused)}
+
+  .task-list{list-style:none;margin:0;padding:0}
+  .task-item{
+    display:flex;justify-content:space-between;gap:12px;padding:12px 0;
+    border-bottom:1px solid var(--border);animation:pop .22s ease;
+  }
+  .task-item:last-child{border-bottom:0;padding-bottom:0}
+  @keyframes pop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+  .task-main{min-width:0;flex:1}
+  .task-name{font-size:15px;font-weight:600;line-height:1.35;word-break:break-word}
+  .task-meta{font-size:12.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
+  .task-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .task-hours{font-size:14px;font-weight:800;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .del-btn{
+    width:26px;height:26px;border-radius:8px;border:1px solid var(--border);background:transparent;
+    color:var(--muted);font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:background .15s,color .15s;
+  }
+  .del-btn:hover{background:var(--stop);color:#fff;border-color:var(--stop)}
+  .muted{color:var(--muted);font-size:14px;margin:10px 0 2px;text-align:center}
+  .total-box{
+    margin:20px 0 16px;background:var(--total-bg);border-radius:20px;
+    padding:24px 22px;text-align:center;color:#fff;box-shadow:var(--total-shadow);
+  }
+  .total-label{font-size:11.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.85}
+  .total-value{font-size:52px;font-weight:800;line-height:1.05;margin-top:8px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .total-value .unit{font-size:20px;font-weight:700;opacity:.85;margin-left:8px;letter-spacing:0}
+  .total-sub{font-size:12.5px;opacity:.8;margin-top:6px}
+  .actions{display:flex;flex-direction:column;gap:10px}
+
+  /* ---------- footer row: clear | theme | install ---------- */
+  .footer-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin-top:18px;
+    flex-wrap:wrap;
+  }
+  .link-btn{
+    background:none;border:0;color:var(--muted);font-size:12.5px;font-family:inherit;
+    text-decoration:underline;cursor:pointer;padding:4px;
+  }
+  .link-btn:hover{color:var(--stop)}
+  .icon-btn{
+    width:36px;height:36px;border-radius:10px;border:1px solid var(--border);
+    background:var(--panel);color:var(--text);font-size:16px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .1s ease,background .15s ease;
+  }
+  .icon-btn:active{transform:scale(.94)}
+
+  /* ---------- install hint panel ---------- */
+  .install-hint{
+    margin:14px auto 0;
+    max-width:480px;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px 34px 12px 14px;
+    font-size:13px;
+    color:var(--muted);
+    line-height:1.5;
+    position:relative;
+    animation:pop .2s ease;
+  }
+  .install-hint strong{ color:var(--text); }
+  .install-hint .close-hint{
+    position:absolute; top:6px; right:6px;
+    background:transparent; border:0; color:var(--muted);
+    font-size:15px; cursor:pointer; padding:4px 8px;
+    border-radius:6px; line-height:1;
+  }
+  .install-hint .close-hint:hover{ background:var(--border); color:var(--text); }
+
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);
+    background:var(--text);color:var(--bg);padding:11px 20px;border-radius:999px;
+    font-size:14px;font-weight:600;opacity:0;pointer-events:none;
+    transition:opacity .2s ease,transform .2s ease;z-index:50;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .shake{animation:shake .35s ease}
+  @keyframes shake{
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-6px)}40%{transform:translateX(6px)}
+    60%{transform:translateX(-4px)}80%{transform:translateX(4px)}
+  }
+  [hidden]{display:none !important}
+
+  /* very narrow phones: stack brand above date/time */
+  @media (max-width: 380px){
+    .top{
+      grid-template-columns:1fr 1fr;
+      grid-template-areas:
+        "left  right"
+        "center center";
+      row-gap:8px;
+    }
+    .brand-left{ grid-area:left; }
+    .brand-right{ grid-area:right; }
+    .date-time{ grid-area:center; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand-left">ESQUALATE</div>
+    <div class="date-time">
+      <div class="date-line" id="dateLine">—</div>
+      <div class="clock-line" id="clockLine">--:--:--</div>
+    </div>
+    <div class="brand-right">NEUROGENX</div>
+  </header>
+
+  <section class="card">
+    <label class="lbl" for="taskInput">What are you working on?</label>
+    <input id="taskInput" type="text" autocomplete="off" autocapitalize="sentences"
+           placeholder="e.g. LinkedIn outreach — 30 connection requests">
+    <div class="timer-row">
+      <div class="timer" id="timerDisplay">00:00:00</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" id="startPauseBtn" type="button">Start</button>
+      <button class="btn stop"    id="stopBtn"       type="button" disabled>Stop</button>
+    </div>
+  </section>
+
+  <!-- CURRENTLY WORKING ON -->
+  <section class="card current-card" id="currentCard" hidden>
+    <div class="current-head">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span class="current-title">Currently Working On</span>
+      <span class="paused-badge" id="pausedBadge" hidden>Paused</span>
+    </div>
+    <p class="current-text" id="currentText">—</p>
+    <div class="current-meta">
+      <span>Started at <span id="currentStart">—</span></span>
+      <span class="current-elapsed" id="currentElapsed">00:00:00</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Completed Tasks</h2>
+      <span class="pill" id="taskCount">0</span>
+    </div>
+    <ul class="task-list" id="taskList"></ul>
+    <p class="muted" id="emptyMsg">No tasks logged yet today.</p>
+  </section>
+
+  <section class="total-box">
+    <div class="total-label">Total Hours Worked Today</div>
+    <div class="total-value"><span id="totalHours">0.00</span><span class="unit">hrs</span></div>
+    <div class="total-sub" id="totalSub">0 tasks logged</div>
+  </section>
+
+  <div class="actions">
+    <button class="btn primary wide" id="exportBtn" type="button">⬇  Download EOD Report (.txt)</button>
+  </div>
+
+  <div class="footer-row">
+    <button class="link-btn" id="clearBtn" type="button">Clear today's tasks</button>
+    <button class="icon-btn" id="themeBtn" title="Toggle light / dark">🌙</button>
+    <button class="icon-btn" id="installBtn" title="Install app">⬇</button>
+  </div>
+
+  <div class="install-hint" id="installHint" hidden></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- report identity ---------- */
+  var USER_NAME    = 'Jeraman Guab';
+  var COMPANY_NAME = 'NEUROGENX';
+
+  /* ---------- safe storage ---------- */
+  var memStore = {};
+  var storage = {
+    get: function (k) {
+      try { return window.localStorage.getItem(k); }
+      catch (e) { return Object.prototype.hasOwnProperty.call(memStore, k) ? memStore[k] : null; }
+    },
+    set: function (k, v) {
+      try { window.localStorage.setItem(k, v); }
+      catch (e) { memStore[k] = v; }
+    }
+  };
+
+  var STORE_KEY = 'eodTimeTracker.v1';
+  var THEME_KEY = 'eodTheme';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var p2 = function (n) { return String(n).padStart(2, '0'); };
+  var uid = function () { return Math.random().toString(36).slice(2, 9) + Date.now().toString(36); };
+
+  function dateKey(d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+  }
+  function fmtHMS(ms) {
+    var s = Math.max(0, Math.floor(ms / 1000));
+    return p2(Math.floor(s / 3600)) + ':' + p2(Math.floor((s % 3600) / 60)) + ':' + p2(s % 60);
+  }
+  function fmtHours(ms) { return (ms / 3600000).toFixed(2); }
+  function fmtTime(ts) {
+    return new Date(ts).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  }
+
+  /* ---------- state ---------- */
+  var state = { tasks: [], active: null };
+
+  function load() {
+    try {
+      var raw = storage.get(STORE_KEY);
+      if (!raw) return;
+      var parsed = JSON.parse(raw);
+      state.tasks = Array.isArray(parsed.tasks) ? parsed.tasks : [];
+      state.active = parsed.active || null;
+
+      if (state.active) {
+        if (typeof state.active.accumulated !== 'number') state.active.accumulated = 0;
+        if (typeof state.active.segmentStart !== 'number') {
+          state.active.segmentStart = state.active.start;
+        }
+        if (typeof state.active.isPaused !== 'boolean') state.active.isPaused = false;
+      }
+    } catch (e) {
+      state.tasks = []; state.active = null;
+    }
+  }
+  function save() {
+    try { storage.set(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  function todaysTasks() {
+    var k = dateKey();
+    return state.tasks.filter(function (t) { return t.date === k; })
+                      .sort(function (a, b) { return a.start - b.start; });
+  }
+  function elapsedActive() {
+    var a = state.active;
+    if (!a) return 0;
+    if (a.isPaused) return a.accumulated;
+    return a.accumulated + (Date.now() - a.segmentStart);
+  }
+
+  /* ---------- elements ---------- */
+  var els = {
+    dateLine: $('dateLine'), clockLine: $('clockLine'),
+    themeBtn: $('themeBtn'), installBtn: $('installBtn'),
+    input: $('taskInput'), timer: $('timerDisplay'),
+    startPauseBtn: $('startPauseBtn'), stopBtn: $('stopBtn'),
+    currentCard: $('currentCard'), currentText: $('currentText'),
+    currentStart: $('currentStart'), currentElapsed: $('currentElapsed'),
+    pausedBadge: $('pausedBadge'),
+    taskList: $('taskList'), emptyMsg: $('emptyMsg'), taskCount: $('taskCount'),
+    totalHours: $('totalHours'), totalSub: $('totalSub'),
+    exportBtn: $('exportBtn'), clearBtn: $('clearBtn'),
+    toast: $('toast'), metaTheme: $('metaTheme')
+  };
+
+  /* ---------- toast ---------- */
+  var toastTimer = null;
+  function toast(msg) {
+    if (!els.toast) return;
+    els.toast.textContent = msg;
+    els.toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { els.toast.classList.remove('show'); }, 2000);
+  }
+
+  /* ---------- theme ---------- */
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    storage.set(THEME_KEY, t);
+    if (els.themeBtn) els.themeBtn.textContent = (t === 'dark') ? '☀️' : '🌙';
+    if (els.metaTheme) els.metaTheme.setAttribute('content', t === 'dark' ? '#0d1015' : '#eef1f6');
+  }
+  els.themeBtn.addEventListener('click', function () {
+    var cur = document.documentElement.getAttribute('data-theme');
+    applyTheme(cur === 'dark' ? 'light' : 'dark');
+  });
+
+  /* ---------- rendering ---------- */
+  function renderActive() {
+    var a = state.active;
+    var spb = els.startPauseBtn;
+    var stb = els.stopBtn;
+
+    if (!a) {
+      spb.textContent = 'Start';
+      spb.classList.remove('pause');
+      spb.classList.add('primary');
+      stb.disabled = true;
+      els.input.disabled = false;
+      els.input.placeholder = 'e.g. LinkedIn outreach — 30 connection requests';
+    } else if (a.isPaused) {
+      spb.textContent = 'Resume';
+      spb.classList.remove('pause');
+      spb.classList.add('primary');
+      stb.disabled = false;
+      els.input.disabled = true;
+      els.input.placeholder = 'Task paused — click Resume or Stop';
+    } else {
+      spb.textContent = 'Pause';
+      spb.classList.remove('primary');
+      spb.classList.add('pause');
+      stb.disabled = false;
+      els.input.disabled = true;
+      els.input.placeholder = 'Task in progress — click Pause or Stop';
+    }
+
+    renderCurrent();
+  }
+
+  function renderCurrent() {
+    var a = state.active;
+    if (!a) { els.currentCard.hidden = true; return; }
+
+    els.currentCard.hidden = false;
+    els.currentCard.classList.toggle('paused', !!a.isPaused);
+    els.currentText.textContent = a.text;
+    els.currentStart.textContent = fmtTime(a.start);
+    els.currentElapsed.textContent = fmtHMS(elapsedActive());
+    els.pausedBadge.hidden = !a.isPaused;
+  }
+
+  function renderTasks() {
+    var list = todaysTasks();
+    els.taskCount.textContent = list.length;
+    els.emptyMsg.hidden = list.length > 0;
+    els.taskList.innerHTML = '';
+
+    list.forEach(function (t) {
+      var li = document.createElement('li');
+      li.className = 'task-item';
+
+      var main = document.createElement('div');
+      main.className = 'task-main';
+
+      var name = document.createElement('div');
+      name.className = 'task-name';
+      name.textContent = t.text;
+
+      var meta = document.createElement('div');
+      meta.className = 'task-meta';
+      meta.textContent = fmtTime(t.start) + ' – ' + fmtTime(t.end);
+
+      main.appendChild(name);
+      main.appendChild(meta);
+
+      var right = document.createElement('div');
+      right.className = 'task-right';
+
+      var hrs = document.createElement('span');
+      hrs.className = 'task-hours';
+      hrs.textContent = fmtHours(t.ms) + ' hrs';
+
+      var del = document.createElement('button');
+      del.className = 'del-btn';
+      del.type = 'button';
+      del.title = 'Delete task';
+      del.setAttribute('aria-label', 'Delete task');
+      del.textContent = '✕';
+      del.addEventListener('click', function () { deleteTask(t.id); });
+
+      right.appendChild(hrs);
+      right.appendChild(del);
+
+      li.appendChild(main);
+      li.appendChild(right);
+      els.taskList.appendChild(li);
+    });
+
+    updateTotal();
+  }
+
+  function totalMsToday() {
+    var ms = todaysTasks().reduce(function (s, t) { return s + t.ms; }, 0);
+    if (state.active) ms += elapsedActive();
+    return ms;
+  }
+
+  function updateTotal() {
+    var ms = totalMsToday();
+    els.totalHours.textContent = fmtHours(ms);
+    var n = todaysTasks().length + (state.active ? 1 : 0);
+    els.totalSub.textContent = (n === 1) ? '1 task logged' : n + ' tasks logged';
+  }
+
+  /* ---------- the tick ---------- */
+  function tick() {
+    try {
+      var now = new Date();
+      els.clockLine.textContent = now.toLocaleTimeString(undefined, {
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+      els.dateLine.textContent = now.toLocaleDateString(undefined, {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+
+      if (state.active) {
+        var el = elapsedActive();
+        els.timer.textContent = fmtHMS(el);
+        els.currentElapsed.textContent = fmtHMS(el);
+      } else {
+        els.timer.textContent = '00:00:00';
+      }
+      updateTotal();
+    } catch (e) {}
+  }
+
+  /* ---------- actions ---------- */
+  function startTask() {
+    if (state.active) return;
+    var text = els.input.value.trim();
+    if (!text) {
+      els.input.classList.add('shake');
+      setTimeout(function () { els.input.classList.remove('shake'); }, 400);
+      els.input.focus();
+      return;
+    }
+    var now = Date.now();
+    state.active = {
+      id: uid(), text: text, start: now, date: dateKey(),
+      accumulated: 0, segmentStart: now, isPaused: false
+    };
+    els.input.value = '';
+    save();
+    renderActive();
+    renderTasks();
+    tick();
+  }
+
+  function pauseTask() {
+    var a = state.active;
+    if (!a || a.isPaused) return;
+    a.accumulated += Date.now() - a.segmentStart;
+    a.segmentStart = null;
+    a.isPaused = true;
+    save();
+    renderActive();
+    tick();
+    toast('Paused — take your break');
+  }
+
+  function resumeTask() {
+    var a = state.active;
+    if (!a || !a.isPaused) return;
+    a.segmentStart = Date.now();
+    a.isPaused = false;
+    save();
+    renderActive();
+    tick();
+  }
+
+  function stopTask() {
+    if (!state.active) return;
+    var a = state.active;
+    var end = Date.now();
+    var total = a.isPaused ? a.accumulated : a.accumulated + (end - a.segmentStart);
+
+    state.tasks.push({
+      id: a.id, text: a.text, start: a.start, end: end,
+      ms: total, date: a.date || dateKey(new Date(a.start))
+    });
+    state.active = null;
+    save();
+    renderActive();
+    renderTasks();
+    tick();
+    els.input.focus();
+  }
+
+  function deleteTask(id) {
+    state.tasks = state.tasks.filter(function (t) { return t.id !== id; });
+    save();
+    renderTasks();
+  }
+
+  els.startPauseBtn.addEventListener('click', function () {
+    if (!state.active)                startTask();
+    else if (state.active.isPaused)   resumeTask();
+    else                              pauseTask();
+  });
+
+  els.stopBtn.addEventListener('click', stopTask);
+
+  els.input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (!state.active) startTask();
+    }
+  });
+
+  els.clearBtn.addEventListener('click', function () {
+    var list = todaysTasks();
+    if (!list.length) { toast('Nothing to clear'); return; }
+    if (!confirm('Delete all ' + list.length + ' task(s) logged today? This cannot be undone.')) return;
+    var k = dateKey();
+    state.tasks = state.tasks.filter(function (t) { return t.date !== k; });
+    save();
+    renderTasks();
+    toast("Today's tasks cleared");
+  });
+
+  /* ---------- EOD report ---------- */
+  function buildReport() {
+    var now = new Date();
+    var list = todaysTasks();
+    var L = [];
+    var bar = '='.repeat(54);
+    var thin = '-'.repeat(54);
+
+    L.push(bar);
+    L.push('  END OF DAY REPORT');
+    L.push(bar);
+    L.push('Name      : ' + USER_NAME);
+    L.push('Company   : ' + COMPANY_NAME);
+    L.push('Date      : ' + now.toLocaleDateString(undefined, {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    }));
+    L.push('Generated : ' + now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }));
+    L.push('');
+    L.push('TASKS COMPLETED');
+    L.push(thin);
+
+    if (!list.length) {
+      L.push('  (no tasks logged)');
+      L.push('');
+    }
+
+    list.forEach(function (t, i) {
+      L.push((i + 1) + '. ' + t.text);
+      L.push('   Time     : ' + fmtTime(t.start) + ' - ' + fmtTime(t.end));
+      L.push('   Duration : ' + fmtHours(t.ms) + ' hrs');
+      L.push('');
+    });
+
+    var activeMs = 0;
+    if (state.active) {
+      activeMs = elapsedActive();
+      L.push('* IN PROGRESS' + (state.active.isPaused ? ' (PAUSED)' : '') + ': ' + state.active.text);
+      L.push('   Started  : ' + fmtTime(state.active.start) + '  (' + fmtHours(activeMs) + ' hrs so far)');
+      L.push('');
+    }
+
+    var grandTotal = list.reduce(function (s, t) { return s + t.ms; }, 0) + activeMs;
+
+    L.push(thin);
+    L.push('TOTAL HOURS WORKED: ' + fmtHours(grandTotal) + ' hrs');
+    L.push(thin);
+
+    return L.join('\n');
+  }
+
+  function downloadReport() {
+    var text = buildReport();
+    var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'EOD-' + USER_NAME.replace(/\s+/g, '_') + '-' + dateKey() + '.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    toast('Report downloaded');
+  }
+
+  els.exportBtn.addEventListener('click', downloadReport);
+
+  /* ---------- install prompt (always visible unless already installed) ---------- */
+  var deferredPrompt = null;
+
+  function isStandalone() {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+           window.navigator.standalone === true;
+  }
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  }
+  function isSafari() {
+    var ua = navigator.userAgent;
+    return /Safari/.test(ua) && !/Chrome|Chromium|Edg|OPR/.test(ua);
+  }
+
+  // Button is always visible on first load unless we're already in standalone mode
+  els.installBtn.hidden = isStandalone();
+
+  // Upgrade to native prompt when the browser offers it
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    els.installBtn.hidden = false;
+  });
+
+  els.installBtn.addEventListener('click', function () {
+    var hint = $('installHint');
+    if (!hint) return;
+
+    // Native install dialog if the browser supports it
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function () {
+        deferredPrompt = null;
+      }).catch(function () {});
+      return;
+    }
+
+    // Otherwise show manual instructions tailored to the browser
+    var msg;
+    if (isStandalone()) {
+      msg = '<strong>Already installed.</strong><br>You are running the app in standalone mode.';
+    } else if (isIOS()) {
+      msg = '<strong>Install on iPhone / iPad:</strong><br>' +
+            'Tap the <strong>Share</strong> button (□↑) at the bottom of Safari, ' +
+            'scroll down, and choose <strong>“Add to Home Screen”</strong>.';
+    } else if (isSafari()) {
+      msg = '<strong>Install on macOS Safari:</strong><br>' +
+            'Go to <strong>File → “Add to Dock…”</strong> and confirm.';
+    } else {
+      msg = '<strong>Install this app:</strong><br>' +
+            'Open your browser menu (<strong>⋮</strong> or <strong>⋯</strong>) and choose ' +
+            '<strong>“Install app”</strong> or <strong>“Add to Home screen”</strong>. ' +
+            'If you don’t see it, the page may need to be served over HTTPS first.';
+    }
+
+    hint.innerHTML = msg +
+      '<button class="close-hint" type="button" aria-label="Close">✕</button>';
+    hint.hidden = false;
+    var closeBtn = hint.querySelector('.close-hint');
+    if (closeBtn) closeBtn.addEventListener('click', function () { hint.hidden = true; });
+  });
+
+  window.addEventListener('appinstalled', function () {
+    var hint = $('installHint');
+    if (hint) hint.hidden = true;
+    els.installBtn.hidden = true;
+    toast('App installed');
+  });
+
+  /* ---------- service worker (optional) ---------- */
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      try {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
+      } catch (e) {}
+    });
+  }
+
+  /* ---------- boot ---------- */
+  function init() {
+    load();
+
+    var savedTheme = storage.get(THEME_KEY);
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+
+    renderActive();
+    renderTasks();
+    tick();
+
+    if (!state.active) {
+      try { els.input.focus(); } catch (e) {}
+    }
+  }
+
+  try { init(); } catch (e) {}
+
+  /* ---------- clock drivers ---------- */
+  setInterval(tick, 500);
+
+  var lastFrame = 0;
+  function loop(ts) {
+    if (ts - lastFrame > 200) {
+      lastFrame = ts;
+      tick();
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) tick();
+  });
+  window.addEventListener('focus', tick);
+
+})();
+</script>
+</body>
+</html>

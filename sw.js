@@ -1,4 +1,4 @@
-const CACHE = 'eod-tracker-v3';
+const CACHE = 'eod-tracker-v3.5';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {

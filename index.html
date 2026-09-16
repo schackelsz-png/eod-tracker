@@ -86,6 +86,22 @@
   input[type="text"]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,140,255,.18)}
   input[type="text"]:disabled{opacity:.55;cursor:not-allowed}
 
+  /* details textarea */
+  textarea{
+    width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);
+    background:var(--panel-2);color:var(--text);font-size:14.5px;font-family:inherit;
+    outline:none;resize:vertical;min-height:60px;line-height:1.45;
+    transition:border-color .15s ease,box-shadow .15s ease,opacity .15s ease;
+  }
+  textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,140,255,.18)}
+  textarea:disabled{opacity:.55;cursor:not-allowed}
+  .details-wrap{ margin-top:10px; }
+  .details-label{
+    display:flex;align-items:baseline;justify-content:space-between;
+    font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:6px;letter-spacing:.02em;
+  }
+  .details-label .optional{ font-size:11px; opacity:.7; font-weight:600; }
+
   /* estimate row */
   .estimate-row{
     display:flex;align-items:center;gap:8px;margin-top:10px;
@@ -170,6 +186,19 @@
   .current-text{
     font-size:17px;font-weight:700;line-height:1.35;word-break:break-word;margin:0 0 8px;
   }
+  .current-details{
+    font-size:13.5px;line-height:1.5;color:var(--muted);
+    background:rgba(255,255,255,.5);border:1px solid var(--current-border);
+    border-radius:10px;padding:10px 12px;margin:0 0 10px;
+    white-space:pre-wrap;word-break:break-word;
+  }
+  html[data-theme="dark"] .current-details{ background:rgba(0,0,0,.20); }
+  .current-card.paused .current-details{
+    background:rgba(245,158,11,.10);border-color:rgba(245,158,11,.4);
+  }
+  html[data-theme="dark"] .current-card.paused .current-details{
+    background:rgba(251,191,36,.10);border-color:rgba(251,191,36,.35);
+  }
   .current-meta{
     display:flex;justify-content:space-between;align-items:baseline;gap:12px;
     font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;
@@ -240,7 +269,12 @@
     opacity:.65;transition:opacity .15s,background .15s,color .15s;flex-shrink:0;
   }
   .edit-btn:hover{ opacity:1; background:var(--accent); color:#fff; border-color:var(--accent); }
-  .task-meta{font-size:12.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
+  .task-details{
+    font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:6px;
+    padding:8px 10px;background:var(--panel-2);border:1px solid var(--border);
+    border-radius:8px;white-space:pre-wrap;word-break:break-word;
+  }
+  .task-meta{font-size:12.5px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
   .task-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
   .task-hours{font-size:14px;font-weight:800;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
   .del-btn{
@@ -270,14 +304,18 @@
   }
   .manual-form input[type="text"],
   .manual-form input[type="number"],
-  .manual-form input[type="date"]{
+  .manual-form input[type="date"],
+  .manual-form textarea{
     width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);
     background:var(--panel);color:var(--text);font-size:14px;font-family:inherit;
     outline:none;transition:border-color .15s ease,box-shadow .15s ease;
   }
-  .manual-form input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,140,255,.18)}
+  .manual-form input:focus, .manual-form textarea:focus{
+    border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,140,255,.18);
+  }
   .manual-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
   .manual-date-input{margin-top:10px}
+  .manual-details{margin-top:10px}
   .manual-hint{
     font-size:11.5px;color:var(--muted);margin-top:8px;text-align:center;
     font-variant-numeric:tabular-nums;
@@ -513,6 +551,16 @@
     <label class="lbl" for="taskInput" id="taskLabel">What are you working on?</label>
     <input id="taskInput" type="text" autocomplete="off" autocapitalize="sentences"
            placeholder="e.g. LinkedIn outreach — 30 connection requests">
+
+    <div class="details-wrap">
+      <label class="details-label" for="taskDetails">
+        <span>Details</span>
+        <span class="optional">optional — extra context</span>
+      </label>
+      <textarea id="taskDetails" rows="2"
+                placeholder="Add more detail about this task… e.g. audience, source list, script used"></textarea>
+    </div>
+
     <div class="estimate-row">
       <span class="estimate-label">Est. time</span>
       <input type="number" id="estH" min="0" max="24" step="1" placeholder="0" inputmode="numeric">
@@ -537,6 +585,7 @@
       <span class="paused-badge" id="pausedBadge" hidden>Paused</span>
     </div>
     <p class="current-text" id="currentText">—</p>
+    <div class="current-details" id="currentDetails" hidden></div>
     <div class="current-meta">
       <span>Started at <span id="currentStart">—</span></span>
       <span class="current-elapsed" id="currentElapsed">00:00:00</span>
@@ -564,6 +613,9 @@
 
     <div class="manual-form" id="manualForm" hidden>
       <input type="text" id="manualText" placeholder="Task description" autocomplete="off">
+      <div class="manual-details">
+        <textarea id="manualDetails" rows="2" placeholder="Details (optional)"></textarea>
+      </div>
       <div class="manual-grid">
         <input type="number" id="manualHours"   placeholder="Hours (e.g. 1)"    min="0" max="24" step="1" inputmode="numeric">
         <input type="number" id="manualMinutes" placeholder="Minutes (e.g. 30)" min="0" max="59" step="5" inputmode="numeric">
@@ -678,7 +730,7 @@
 
   var STORE_KEY = 'eodTimeTracker.v1';
   var THEME_KEY = 'eodTheme';
-  var IDLE_MS   = 2 * 60 * 1000;   // 2 minutes
+  var IDLE_MS   = 2 * 60 * 1000;
 
   var $ = function (id) { return document.getElementById(id); };
   var p2 = function (n) { return String(n).padStart(2, '0'); };
@@ -696,7 +748,7 @@
     var r = new Date(d); r.setDate(r.getDate() + n); return r;
   }
   function startOfWeek(d) {
-    var day = d.getDay(); // 0 = Sunday
+    var day = d.getDay();
     return new Date(d.getFullYear(), d.getMonth(), d.getDate() - day, 0, 0, 0, 0);
   }
   function fmtHMS(ms) {
@@ -743,6 +795,7 @@
         if (typeof state.active.segmentStart !== 'number') state.active.segmentStart = state.active.start;
         if (typeof state.active.isPaused !== 'boolean') state.active.isPaused = false;
         if (typeof state.active.estimatedMs !== 'number') state.active.estimatedMs = 0;
+        if (typeof state.active.details !== 'string') state.active.details = '';
       }
     } catch (e) {
       state.tasks = []; state.active = null;
@@ -769,10 +822,12 @@
     dateLine: $('dateLine'), clockLine: $('clockLine'),
     themeBtn: $('themeBtn'), installBtn: $('installBtn'),
     taskLabel: $('taskLabel'),
-    input: $('taskInput'), estH: $('estH'), estM: $('estM'),
+    input: $('taskInput'), details: $('taskDetails'),
+    estH: $('estH'), estM: $('estM'),
     timer: $('timerDisplay'),
     startPauseBtn: $('startPauseBtn'), stopBtn: $('stopBtn'),
     currentCard: $('currentCard'), currentText: $('currentText'),
+    currentDetails: $('currentDetails'),
     currentStart: $('currentStart'), currentElapsed: $('currentElapsed'),
     pausedBadge: $('pausedBadge'),
     currentProgress: $('currentProgress'),
@@ -783,8 +838,8 @@
     totalHours: $('totalHours'), totalSub: $('totalSub'),
     targetFill: $('targetFill'), targetLabel: $('targetLabel'), targetPercent: $('targetPercent'),
     addManualBtn: $('addManualBtn'), manualForm: $('manualForm'),
-    manualText: $('manualText'), manualHours: $('manualHours'),
-    manualMinutes: $('manualMinutes'), manualDate: $('manualDate'),
+    manualText: $('manualText'), manualDetails: $('manualDetails'),
+    manualHours: $('manualHours'), manualMinutes: $('manualMinutes'), manualDate: $('manualDate'),
     manualCancel: $('manualCancel'), manualSave: $('manualSave'),
     weeklyToggle: $('weeklyToggle'), weeklyCaret: $('weeklyCaret'),
     weeklyPeek: $('weeklyPeek'), weeklyBody: $('weeklyBody'),
@@ -931,7 +986,7 @@
     state.autoPauseEnabled = els.autoPauseToggle.checked;
     save();
     if (state.autoPauseEnabled) {
-      lastActivity = Date.now();  // reset idle clock when turning on
+      lastActivity = Date.now();
       toast('Auto-pause enabled (2 min idle)');
     } else {
       toast('Auto-pause disabled');
@@ -940,7 +995,6 @@
 
   /* ---------- idle detection ---------- */
   var lastActivity = Date.now();
-
   function markActivity() { lastActivity = Date.now(); }
   ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click', 'wheel']
     .forEach(function (ev) {
@@ -952,7 +1006,6 @@
     if (!state.active || state.active.isPaused) return;
     if (Date.now() - lastActivity < IDLE_MS) return;
 
-    // trigger idle pause
     var a = state.active;
     a.accumulated += Date.now() - a.segmentStart;
     a.segmentStart = null;
@@ -975,6 +1028,7 @@
       spb.classList.remove('pause'); spb.classList.add('primary');
       stb.disabled = true;
       els.input.disabled = false;
+      els.details.disabled = false;
       els.estH.disabled = false;
       els.estM.disabled = false;
       els.input.placeholder = 'e.g. LinkedIn outreach — 30 connection requests';
@@ -983,6 +1037,7 @@
       spb.classList.remove('pause'); spb.classList.add('primary');
       stb.disabled = false;
       els.input.disabled = true;
+      els.details.disabled = true;
       els.estH.disabled = true;
       els.estM.disabled = true;
       els.input.placeholder = a.pauseReason === 'idle'
@@ -993,6 +1048,7 @@
       spb.classList.remove('primary'); spb.classList.add('pause');
       stb.disabled = false;
       els.input.disabled = true;
+      els.details.disabled = true;
       els.estH.disabled = true;
       els.estM.disabled = true;
       els.input.placeholder = 'Task in progress — click Pause or Stop';
@@ -1007,10 +1063,18 @@
     els.currentCard.hidden = false;
     els.currentCard.classList.toggle('paused', !!a.isPaused);
     els.currentText.textContent = a.text;
+
+    if (a.details && a.details.trim()) {
+      els.currentDetails.hidden = false;
+      els.currentDetails.textContent = a.details;
+    } else {
+      els.currentDetails.hidden = true;
+      els.currentDetails.textContent = '';
+    }
+
     els.currentStart.textContent = fmtTime(a.start);
     els.currentElapsed.textContent = fmtHMS(elapsedActive());
 
-    // Paused badge
     if (a.isPaused) {
       els.pausedBadge.hidden = false;
       if (a.pauseReason === 'idle') {
@@ -1025,7 +1089,6 @@
       els.pausedBadge.classList.remove('idle');
     }
 
-    // Task progress
     if (a.estimatedMs > 0) {
       els.currentProgress.hidden = false;
       var elapsed = elapsedActive();
@@ -1080,13 +1143,21 @@
       }
       name.appendChild(editBtn);
 
+      main.appendChild(name);
+
+      // Show details if present
+      if (t.details && t.details.trim()) {
+        var detailsEl = document.createElement('div');
+        detailsEl.className = 'task-details';
+        detailsEl.textContent = t.details;
+        main.appendChild(detailsEl);
+      }
+
       var meta = document.createElement('div');
       meta.className = 'task-meta';
       meta.textContent = t.manual
         ? 'Manual entry'
         : fmtTime(t.start) + ' – ' + fmtTime(t.end);
-
-      main.appendChild(name);
       main.appendChild(meta);
 
       var right = document.createElement('div');
@@ -1273,7 +1344,6 @@
         els.timer.textContent = fmtHMS(el);
         els.currentElapsed.textContent = fmtHMS(el);
 
-        // live progress bar update
         var a = state.active;
         if (a.estimatedMs > 0) {
           var pct = Math.min(1, el / a.estimatedMs);
@@ -1311,14 +1381,16 @@
       els.input.focus();
       return;
     }
+    var details = els.details.value.trim();
     var estimatedMs = parseEstimatedMs();
     var now = Date.now();
     state.active = {
-      id: uid(), text: text, start: now, date: dateKey(),
+      id: uid(), text: text, details: details, start: now, date: dateKey(),
       accumulated: 0, segmentStart: now, isPaused: false,
       estimatedMs: estimatedMs, pauseReason: null
     };
     els.input.value = '';
+    els.details.value = '';
     els.estH.value = '';
     els.estM.value = '';
     save(); renderActive(); renderTasks(); tick();
@@ -1352,7 +1424,8 @@
     var total = a.isPaused ? a.accumulated : a.accumulated + (end - a.segmentStart);
 
     state.tasks.push({
-      id: a.id, text: a.text, start: a.start, end: end,
+      id: a.id, text: a.text, details: a.details || '',
+      start: a.start, end: end,
       ms: total, date: a.date || dateKey(new Date(a.start)),
       estimatedMs: a.estimatedMs || 0
     });
@@ -1391,6 +1464,7 @@
   function openManualForm() {
     els.manualForm.hidden = false;
     els.manualText.value = '';
+    els.manualDetails.value = '';
     els.manualHours.value = '';
     els.manualMinutes.value = '';
     els.manualDate.value = dateKey();
@@ -1407,6 +1481,7 @@
 
   function saveManualEntry() {
     var text = els.manualText.value.trim();
+    var details = els.manualDetails.value.trim();
     var hrsRaw = els.manualHours.value.trim();
     var minsRaw = els.manualMinutes.value.trim();
     var dateStr = els.manualDate.value;
@@ -1431,7 +1506,7 @@
     var dateMidnight = parseDateKey(dateStr).getTime();
 
     state.tasks.push({
-      id: uid(), text: text, manual: true, date: dateStr,
+      id: uid(), text: text, details: details, manual: true, date: dateStr,
       ms: ms, start: dateMidnight, end: dateMidnight + ms, addedAt: Date.now()
     });
     save(); closeManualForm(); renderTasks();
@@ -1493,6 +1568,13 @@
 
     list.forEach(function (t, i) {
       L.push((i + 1) + '. ' + t.text + (t.manual ? '  [manual]' : ''));
+      if (t.details && t.details.trim()) {
+        // indent each line of details by 3 spaces
+        var detailLines = t.details.split(/\r?\n/);
+        detailLines.forEach(function (line) {
+          L.push('   ' + line);
+        });
+      }
       if (t.manual) {
         L.push('   Time     : manual entry');
       } else {
@@ -1506,6 +1588,11 @@
     if (state.active) {
       activeMs = elapsedActive();
       L.push('* IN PROGRESS' + (state.active.isPaused ? ' (PAUSED' + (state.active.pauseReason === 'idle' ? ' · IDLE' : '') + ')' : '') + ': ' + state.active.text);
+      if (state.active.details && state.active.details.trim()) {
+        state.active.details.split(/\r?\n/).forEach(function (line) {
+          L.push('   ' + line);
+        });
+      }
       L.push('   Started  : ' + fmtTime(state.active.start) + '  (' + fmtHours(activeMs) + ' hrs so far)');
       L.push('');
     }
@@ -1588,6 +1675,11 @@
       L.push(day.date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }));
       day.tasks.forEach(function (t, i) {
         L.push('  ' + (i + 1) + '. ' + t.text + (t.manual ? '  [manual]' : ''));
+        if (t.details && t.details.trim()) {
+          t.details.split(/\r?\n/).forEach(function (line) {
+            L.push('     ' + line);
+          });
+        }
         if (t.manual) {
           L.push('     Time     : manual entry');
         } else {
@@ -1687,13 +1779,9 @@
     var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
 
-    // restore auto-pause toggle
     els.autoPauseToggle.checked = !!state.autoPauseEnabled;
-
-    // greeting
     updateGreeting();
 
-    // first-time onboarding
     if (!state.onboarded || !state.userName) {
       openOnboard(false);
     }
